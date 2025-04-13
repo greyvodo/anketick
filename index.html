@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Создание мероприятия</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2980b9;
+      --text-color: #333333;
+      --bg-color: #f5f7fa;
+      --card-bg: #ffffff;
+      --border-color: #e1e5eb;
+      --success-color: #2ecc71;
+      --error-color: #e74c3c;
+      --radius: 12px;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow-x: hidden;
+      background-color: var(--bg-color);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-color);
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .app-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .card-header {
+      padding: 24px 24px 0;
+    }
+
+    .card-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .card-subtitle {
+      font-size: 14px;
+      color: var(--text-color);
+      opacity: 0.7;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .card-body {
+      padding: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-color);
+    }
+
+    .required::after {
+      content: '*';
+      color: var(--error-color);
+      margin-left: 4px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: calc(var(--radius) / 2);
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      transition: var(--transition);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    textarea.form-control {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      border: none;
+      border-radius: calc(var(--radius) / 2);
+      cursor: pointer;
+      transition: var(--transition);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .message {
+      padding: 12px;
+      border-radius: calc(var(--radius) / 2);
+      margin-top: 16px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      display: none;
+    }
+
+    .error {
+      background-color: rgba(231, 76, 60, 0.1);
+      color: var(--error-color);
+    }
+
+    .success {
+      background-color: rgba(46, 204, 113, 0.1);
+      color: var(--success-color);
+    }
+
+    .loader {
+      display: none;
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(52, 152, 219, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      display: inline-block;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Date input styling */
+    input[type="datetime-local"] {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    /* Fix for iOS date selector */
+    @supports (-webkit-touch-callout: none) {
+      input[type="datetime-local"] {
+        min-height: 44px;
+      }
+    }
+
+    /* Кнопка закрытия клавиатуры */
+    .keyboard-done {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      background: var(--primary-color);
+      color: white;
+      padding: 8px 16px;
+      border-radius: calc(var(--radius) / 2);
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      display: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Добавление нижнего отступа для скролла */
+    .bottom-padding {
+      height: 100px;
+      width: 100%;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 576px) {
+      .card-body {
+        padding: 16px;
+      }
+
+      .form-control {
+        padding: 12px 14px;
+      }
+
+      .btn {
+        padding: 12px;
+      }
+
+      .app-container {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="card">
+      <div class="card-header">
+        <h1 class="card-title">Создание мероприятия</h1>
+        <p class="card-subtitle">Заполните детали вашего события</p>
+      </div>
+
+      <div class="card-body">
+        <form id="event-form">
+          <div class="form-group">
+            <label for="title" class="form-label required">Название</label>
+            <input type="text" id="title" class="form-control" placeholder="Введите название мероприятия" required>
+          </div>
+
+          <div class="form-group">
+            <label for="description" class="form-label">Описание</label>
+            <textarea id="description" class="form-control" placeholder="Расскажите о вашем мероприятии..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="start-date" class="form-label required">Дата и время начала</label>
+            <input type="datetime-local" id="start-date" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label for="end-date" class="form-label">Дата и время окончания</label>
+            <input type="datetime-local" id="end-date" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label for="location" class="form-label required">Место проведения</label>
+            <input type="text" id="location" class="form-control" placeholder="Укажите место проведения" required>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" id="reset-button" class="btn btn-secondary">Сбросить</button>
+            <button type="button" id="submit-button" class="btn btn-primary">Создать мероприятие</button>
+          </div>
+
+          <div id="loader" class="loader">
+            <span class="spinner"></span>
+          </div>
+
+          <div id="error-message" class="message error"></div>
+          <div id="success-message" class="message success"></div>
+        </form>
+      </div>
+    </div>
+    <!-- Дополнительный отступ внизу для скролла -->
+    <div class="bottom-padding"></div>
+  </div>
+
+  <button id="keyboard-done" class="keyboard-done">Готово</button>
+
+  <script>
+    // Инициализация Telegram WebApp
+    const tgApp = window.Telegram.WebApp;
+    tgApp.expand();
+    tgApp.enableClosingConfirmation();
+
+    // Применение темы Telegram
+    function applyTelegramTheme() {
+      // Получаем цвета из Telegram
+      const colors = {
+        bg: tgApp.themeParams.bg_color || '#f5f7fa',
+        text: tgApp.themeParams.text_color || '#333333',
+        hint: tgApp.themeParams.hint_color || '#999999',
+        link: tgApp.themeParams.link_color || '#3498db',
+        button: tgApp.themeParams.button_color || '#3498db',
+        buttonText: tgApp.themeParams.button_text_color || '#ffffff',
+        secondary_bg: tgApp.themeParams.secondary_bg_color || '#ffffff'
+      };
+
+      // Применяем цвета к CSS переменным
+      document.documentElement.style.setProperty('--primary-color', colors.button);
+      document.documentElement.style.setProperty('--secondary-color', adjustColor(colors.button, -20));
+      document.documentElement.style.setProperty('--text-color', colors.text);
+      document.documentElement.style.setProperty('--bg-color', colors.bg);
+      document.documentElement.style.setProperty('--card-bg', colors.secondary_bg || '#ffffff');
+      document.documentElement.style.setProperty('--border-color', adjustColor(colors.bg, -10));
+    }
+
+    // Функция для затемнения или осветления цвета
+    function adjustColor(color, amount) {
+      // Преобразуем HEX в RGB
+      let hex = color.replace('#', '');
+      let r = parseInt(hex.substring(0, 2), 16);
+      let g = parseInt(hex.substring(2, 4), 16);
+      let b = parseInt(hex.substring(4, 6), 16);
+
+      // Изменяем яркость
+      r = Math.max(0, Math.min(255, r + amount));
+      g = Math.max(0, Math.min(255, g + amount));
+      b = Math.max(0, Math.min(255, b + amount));
+
+      // Преобразуем обратно в HEX
+      return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    }
+
+    // Применяем тему
+    applyTelegramTheme();
+
+    // Элементы формы
+    const form = document.getElementById('event-form');
+    const submitButton = document.getElementById('submit-button');
+    const resetButton = document.getElementById('reset-button');
+    const loader = document.getElementById('loader');
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
+    const keyboardDoneButton = document.getElementById('keyboard-done');
+
+    // Все input элементы
+    const inputElements = document.querySelectorAll('input, textarea');
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+
+    // Установка минимального времени для полей даты
+    function updateMinDates() {
+      const now = new Date();
+      const formattedNow = now.toISOString().slice(0, 16);
+      startDateInput.min = formattedNow;
+      endDateInput.min = formattedNow;
+
+      // Если выбрана начальная дата, то конечная дата должна быть позже
+      if (startDateInput.value) {
+        endDateInput.min = startDateInput.value;
+      }
+    }
+
+    updateMinDates();
+
+    // Обновление минимальной даты окончания при изменении даты начала
+    startDateInput.addEventListener('change', function() {
+      if (startDateInput.value) {
+        endDateInput.min = startDateInput.value;
+
+        // Если дата окончания раньше даты начала, сбрасываем её
+        if (endDateInput.value && new Date(endDateInput.value) <= new Date(startDateInput.value)) {
+          endDateInput.value = '';
+        }
+      }
+    });
+
+    // Предотвращение дерганий при появлении клавиатуры на iOS
+    let viewportHeight = window.innerHeight;
+    let keyboardVisible = false;
+
+    // Обработка изменения высоты окна (появление/скрытие клавиатуры)
+    window.addEventListener('resize', function() {
+      // Если высота окна уменьшилась значительно, значит появилась клавиатура
+      if (window.innerHeight < viewportHeight * 0.8 && !keyboardVisible) {
+        keyboardVisible = true;
+        document.body.classList.add('keyboard-open');
+
+        // Показываем кнопку закрытия клавиатуры
+        keyboardDoneButton.style.display = 'block';
+
+      } else if (window.innerHeight > viewportHeight * 0.9 && keyboardVisible) {
+        keyboardVisible = false;
+        document.body.classList.remove('keyboard-open');
+
+        // Скрываем кнопку закрытия клавиатуры
+        keyboardDoneButton.style.display = 'none';
+      }
+    });
+
+    // Обработка клика на кнопку "Готово" для закрытия клавиатуры
+    keyboardDoneButton.addEventListener('click', function() {
+      document.activeElement.blur();
+      keyboardDoneButton.style.display = 'none';
+    });
+
+    // Улучшенное управление фокусом для предотвращения проблем с перекрытием
+    inputElements.forEach(input => {
+      // При фокусе на поле ввода
+      input.addEventListener('focus', function() {
+        // Плавный скролл к элементу с небольшой задержкой
+        setTimeout(() => {
+          // Вычисляем позицию элемента
+          const rect = input.getBoundingClientRect();
+
+          // Если элемент находится внизу экрана и может быть перекрыт клавиатурой
+          if (rect.bottom > window.innerHeight * 0.7) {
+            // Скроллим к элементу
+            window.scrollTo({
+              top: window.scrollY + rect.top - 100,
+              behavior: 'smooth'
+            });
+          }
+        }, 300);
+      });
+    });
+
+    // Обработка кнопки сброса формы
+    resetButton.addEventListener('click', function() {
+      form.reset();
+      updateMinDates();
+      errorMessage.style.display = 'none';
+      successMessage.style.display = 'none';
+    });
+
+    // Обработка отправки формы
+    submitButton.addEventListener('click', function() {
+      // Получение значений полей
+      const title = document.getElementById('title').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const startDate = document.getElementById('start-date').value;
+      const endDate = document.getElementById('end-date').value;
+      const location = document.getElementById('location').value.trim();
+
+      // Проверка обязательных полей
+      if (!title) {
+        showMessage('error', 'Необходимо указать название мероприятия');
+        return;
+      }
+
+      if (!startDate) {
+        showMessage('error', 'Необходимо указать дату и время начала');
+        return;
+      }
+
+      if (!location) {
+        showMessage('error', 'Необходимо указать место проведения');
+        return;
+      }
+
+      // Проверка дат
+      if (endDate && new Date(endDate) <= new Date(startDate)) {
+        showMessage('error', 'Дата окончания должна быть позже даты начала');
+        return;
+      }
+
+      // Форматирование дат для API
+      const formattedStartDate = formatDateForAPI(startDate);
+      const formattedEndDate = endDate ? formatDateForAPI(endDate) : '';
+
+      // Создание объекта с данными
+      const eventData = {
+        title: title,
+        description: description,
+        start_time: formattedStartDate,
+        end_time: formattedEndDate,
+        location: location
+      };
+
+      // Отправка данных
+      submitButton.disabled = true;
+      loader.style.display = 'block';
+
+      try {
+        // Отправка данных в Telegram
+        tgApp.sendData(JSON.stringify(eventData));
+
+        // Показываем сообщение об успехе
+        loader.style.display = 'none';
+        showMessage('success', 'Мероприятие успешно создано!');
+
+        // Закрываем WebApp через 2 секунды
+        setTimeout(() => {
+          tgApp.close();
+        }, 2000);
+      } catch (error) {
+        console.error("Ошибка при отправке данных:", error);
+        loader.style.display = 'none';
+        submitButton.disabled = false;
+        showMessage('error', 'Произошла ошибка при создании мероприятия');
+      }
+    });
+
+    // Форматирование даты для API
+    function formatDateForAPI(dateString) {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}`;
+    }
+
+    // Показать сообщение (ошибка или успех)
+    function showMessage(type, text) {
+      if (type === 'error') {
+        errorMessage.textContent = text;
+        errorMessage.style.display = 'block';
+        successMessage.style.display = 'none';
+
+        // Автоматически скрываем сообщение об ошибке через 3 секунды
+        setTimeout(() => {
+          errorMessage.style.display = 'none';
+        }, 3000);
+      } else {
+        successMessage.textContent = text;
+        successMessage.style.display = 'block';
+        errorMessage.style.display = 'none';
+      }
+
+      // Плавный скролл к сообщению
+      setTimeout(() => {
+        const messageEl = type === 'error' ? errorMessage : successMessage;
+        const rect = messageEl.getBoundingClientRect();
+
+        // Только если сообщение не видно на экране
+        if (rect.bottom > window.innerHeight || rect.top < 0) {
+          window.scrollTo({
+            top: window.scrollY + rect.top - 100,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+    }
+
+    // Предотвращение масштабирования на двойное нажатие для iOS
+    document.addEventListener('touchstart', function(event) {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+    }, { passive: false });
+
+    // Предотвращение жестов масштабирования
+    document.addEventListener('gesturestart', function(event) {
+      event.preventDefault();
+    }, { passive: false });
+  </script>
+</body>
+</html>
